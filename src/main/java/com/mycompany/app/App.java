@@ -13,7 +13,7 @@ public class App {
         products.add(new Product("Motorola G30", 30000));
         System.out.println("Product List:");
         for (Product product : products) {
-            System.out.println(product.getName() + " - " + product.getPrice());
+            System.out.println(product.getName() + ", Price:" + product.getPrice());
         }
     }
 }

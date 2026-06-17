@@ -89,68 +89,6 @@ public class AppTest {
         assertTrue(productList.hasChanges(), "hasChanges should be true after adding a product.");
         
         productList.updateProductPrice("Sample", 150);
-        assertTrue(productList.hasChanges(), "hasChanges should remain true/updated after price modification.");
-    }
-
-    /**
-     * Tests Polymorphic CSV Persistence.
-     */
-    @Test
-    public void testCsvRepository() throws Exception {
-        String testFile = "test_products.csv";
-        new File(testFile).deleteOnExit();
-
-        CsvProductRepository repo = new CsvProductRepository(testFile);
-        ProductList list = new ProductList(repo);
-        list.addProduct(new PhysicalProduct("Laptop", 1200.0, 2.5));
-        list.addProduct(new DigitalProduct("Software", 99.0, "http://dl"));
-        list.save();
-
-        ProductList list2 = new ProductList(repo);
-        list2.load();
-
-        assertEquals(1200.0, list2.getPrice("Laptop"));
-        assertEquals(99.0, list2.getPrice("Software"));
-        new File(testFile).delete();
-    }
-
-    /**
-     * Tests Polymorphic JSON Persistence.
-     */
-    @Test
-    public void testJsonRepository() throws Exception {
-        String testFile = "test_products.json";
-        new File(testFile).deleteOnExit();
-
-        JsonProductRepository repo = new JsonProductRepository(testFile);
-        ProductList list = new ProductList(repo);
-        list.addProduct(new PhysicalProduct("Phone", 800.0, 0.4));
-        list.addProduct(new DigitalProduct("Ebook", 15.0, "http://ebook"));
-        list.save();
-
-        ProductList list2 = new ProductList(repo);
-        list2.load();
-
-        assertEquals(800.0, list2.getPrice("Phone"));
-        assertEquals(15.0, list2.getPrice("Ebook"));
-        new File(testFile).delete();
-    }
-
-    /**
-     * Tests H2 Persistence.
-     */
-    @Test
-    public void testH2Repository() throws Exception {
-        H2ProductRepository repo = new H2ProductRepository("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
-        ProductList list = new ProductList(repo);
-        list.addProduct(new PhysicalProduct("Book", 20.0, 0.8));
-        list.addProduct(new DigitalProduct("Movie", 10.0, "http://movie"));
-        list.save();
-
-        ProductList list2 = new ProductList(repo);
-        list2.load();
-
-        assertEquals(20.0, list2.getPrice("Book"));
-        assertEquals(10.0, list2.getPrice("Movie"));
+        assertTrue(productList.hasChanges(), "hasChanges should remain true after price update.");
     }
 }

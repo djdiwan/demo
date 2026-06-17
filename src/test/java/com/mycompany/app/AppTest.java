@@ -3,6 +3,7 @@ package com.mycompany.app;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import java.io.File;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ public class AppTest {
     @Test
     public void testAddProductAndGetPrice() {
         ProductList productList = new ProductList();
-        productList.addProduct(new Product("Mi11X", 28000.0));
+        productList.addProduct(new PhysicalProduct("Mi11X", 28000.0, 0.2));
         assertEquals(28000.0, productList.getPrice("Mi11X"), 0.001, "The price should match the added product.");
     }
 
@@ -37,19 +38,20 @@ public class AppTest {
     @Test
     public void testFindProductsInRange() {
         ProductList productList = new ProductList();
-        productList.addProduct(new Product("A", 100));
-        productList.addProduct(new Product("B", 200));
-        productList.addProduct(new Product("C", 300));
+        productList.addProduct(new PhysicalProduct("A", 100, 1.0));
+        productList.addProduct(new DigitalProduct("B", 200, "http://download"));
+        productList.addProduct(new PhysicalProduct("C", 300, 2.0));
         List<Product> filtered = productList.findProductsInRange(150, 250);
         assertEquals(1, filtered.size());
         assertEquals("B", filtered.get(0).getName());
+        assertEquals("Digital", filtered.get(0).getType());
     }
 
     @Test
     public void testGetTotalValue() {
         ProductList productList = new ProductList();
-        productList.addProduct(new Product("A", 10.5));
-        productList.addProduct(new Product("B", 20.5));
+        productList.addProduct(new PhysicalProduct("A", 10.5, 1.0));
+        productList.addProduct(new DigitalProduct("B", 20.5, "url"));
         assertEquals(31.0, productList.getTotalValue(), 0.001);
     }
 
@@ -59,7 +61,7 @@ public class AppTest {
     @Test
     public void testDeleteProduct() {
         ProductList productList = new ProductList();
-        productList.addProduct(new Product("Mi11X", 28000));
+        productList.addProduct(new PhysicalProduct("Mi11X", 28000, 0.15));
         productList.deleteProduct("Mi11X");
         assertEquals(-1.0, productList.getPrice("Mi11X"), 0.001, "Product should not be found after deletion.");
     }
@@ -70,7 +72,7 @@ public class AppTest {
     @Test
     public void testUpdateProductPrice() {
         ProductList productList = new ProductList();
-        productList.addProduct(new Product("Motorola G30", 30000));
+        productList.addProduct(new PhysicalProduct("Motorola G30", 30000, 0.3));
         productList.updateProductPrice("Motorola G30", 25000);
         assertEquals(25000.0, productList.getPrice("Motorola G30"), 0.001, "Price should reflect the updated value.");
     }
@@ -83,13 +85,72 @@ public class AppTest {
         ProductList productList = new ProductList();
         assertFalse(productList.hasChanges(), "Initially, hasChanges should be false.");
         
-        productList.addProduct(new Product("Sample", 100));
+        productList.addProduct(new PhysicalProduct("Sample", 100, 1.0));
         assertTrue(productList.hasChanges(), "hasChanges should be true after adding a product.");
-        
-        // Note: In a real integration test, calling saveToCSV would flip this back to false,
-        // but we are testing the logic trigger here.
         
         productList.updateProductPrice("Sample", 150);
         assertTrue(productList.hasChanges(), "hasChanges should remain true/updated after price modification.");
+    }
+
+    /**
+     * Tests Polymorphic CSV Persistence.
+     */
+    @Test
+    public void testCsvRepository() throws Exception {
+        String testFile = "test_products.csv";
+        new File(testFile).deleteOnExit();
+
+        CsvProductRepository repo = new CsvProductRepository(testFile);
+        ProductList list = new ProductList(repo);
+        list.addProduct(new PhysicalProduct("Laptop", 1200.0, 2.5));
+        list.addProduct(new DigitalProduct("Software", 99.0, "http://dl"));
+        list.save();
+
+        ProductList list2 = new ProductList(repo);
+        list2.load();
+
+        assertEquals(1200.0, list2.getPrice("Laptop"));
+        assertEquals(99.0, list2.getPrice("Software"));
+        new File(testFile).delete();
+    }
+
+    /**
+     * Tests Polymorphic JSON Persistence.
+     */
+    @Test
+    public void testJsonRepository() throws Exception {
+        String testFile = "test_products.json";
+        new File(testFile).deleteOnExit();
+
+        JsonProductRepository repo = new JsonProductRepository(testFile);
+        ProductList list = new ProductList(repo);
+        list.addProduct(new PhysicalProduct("Phone", 800.0, 0.4));
+        list.addProduct(new DigitalProduct("Ebook", 15.0, "http://ebook"));
+        list.save();
+
+        ProductList list2 = new ProductList(repo);
+        list2.load();
+
+        assertEquals(800.0, list2.getPrice("Phone"));
+        assertEquals(15.0, list2.getPrice("Ebook"));
+        new File(testFile).delete();
+    }
+
+    /**
+     * Tests H2 Persistence.
+     */
+    @Test
+    public void testH2Repository() throws Exception {
+        H2ProductRepository repo = new H2ProductRepository("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+        ProductList list = new ProductList(repo);
+        list.addProduct(new PhysicalProduct("Book", 20.0, 0.8));
+        list.addProduct(new DigitalProduct("Movie", 10.0, "http://movie"));
+        list.save();
+
+        ProductList list2 = new ProductList(repo);
+        list2.load();
+
+        assertEquals(20.0, list2.getPrice("Book"));
+        assertEquals(10.0, list2.getPrice("Movie"));
     }
 }

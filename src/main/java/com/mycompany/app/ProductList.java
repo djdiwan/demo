@@ -1,6 +1,6 @@
 package com.mycompany.app;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,12 +12,29 @@ import java.util.stream.Collectors;
 public class ProductList {
     private ArrayList<Product> products;
     private boolean hasChanges = false;
+    private ProductRepository repository;
 
     /**
      * Constructs a new ProductList with an empty list of products.
      */
     public ProductList() {
         this.products = new ArrayList<>();
+    }
+
+    /**
+     * Constructs a new ProductList with a custom repository.
+     */
+    public ProductList(ProductRepository repository) {
+        this.products = new ArrayList<>();
+        this.repository = repository;
+    }
+
+    public ProductRepository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(ProductRepository repository) {
+        this.repository = repository;
     }
 
     /**
@@ -42,51 +59,64 @@ public class ProductList {
     public void listProducts() {
         System.out.println("Product List:");
         for (Product product : products) {
-            System.out.println(product.getName() + ", Price:" + product.getPrice());
+            System.out.println(product.getName() + " (" + product.getType() + "), Price:" + product.getPrice() + " [" + product.getDetails() + "]");
         }
     }
 
     /**
-     * Saves the current list of products to a CSV file.
+     * Saves the current list of products to the repository.
+     */
+    public void save() {
+        if (repository == null) {
+            System.err.println("No repository set for saving.");
+            return;
+        }
+        try {
+            repository.save(products);
+            System.out.println("Data successfully saved.");
+            this.hasChanges = false;
+        } catch (Exception e) {
+            System.err.println("Error saving: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Loads products from the repository.
+     */
+    public void load() {
+        if (repository == null) {
+            System.err.println("No repository set for loading.");
+            return;
+        }
+        try {
+            this.products.clear();
+            this.products.addAll(repository.load());
+            this.hasChanges = false;
+        } catch (Exception e) {
+            System.err.println("Error loading: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Saves the current list of products to a CSV file (legacy support).
      * @param filename The name of the file to save to.
      */
     public void saveToCSV(String filename) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
-            for (Product product : products) {
-                writer.println(product.getName() + "," + product.getPrice());
-            }
-            System.out.println("Data saved to " + filename);
-            this.hasChanges = false;
-        } catch (IOException e) {
-            System.err.println("Error saving to CSV: " + e.getMessage());
-        }
+        ProductRepository backup = this.repository;
+        this.repository = new CsvProductRepository(filename);
+        save();
+        this.repository = backup;
     }
 
     /**
-     * Loads products from a CSV file into the list.
+     * Loads products from a CSV file into the list (legacy support).
      * @param filename The name of the file to load from.
      */
     public void loadFromCSV(String filename) {
-        File file = new File(filename);
-        if (!file.exists()) {
-            return;
-        }
-
-        this.products.clear();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 2) {
-                    String name = parts[0];
-                    double price = Double.parseDouble(parts[1]);
-                    this.addProduct(new Product(name, price));
-                }
-            }
-            this.hasChanges = false;
-        } catch (IOException | NumberFormatException e) {
-            System.err.println("Error loading from CSV: " + e.getMessage());
-        }
+        ProductRepository backup = this.repository;
+        this.repository = new CsvProductRepository(filename);
+        load();
+        this.repository = backup;
     }
 
     /**
@@ -130,10 +160,12 @@ public class ProductList {
     public void updateProductPrice(String name, double newPrice) {
         for (Product p : products) {
             if (p.getName().equalsIgnoreCase(name)) {
-                p.price = newPrice;
-                this.hasChanges = true;
-                System.out.println("Price updated.");
-                return;
+                if (p instanceof AbstractProduct) {
+                    ((AbstractProduct) p).setPrice(newPrice);
+                    this.hasChanges = true;
+                    System.out.println("Price updated.");
+                    return;
+                }
             }
         }
         System.out.println("Product not found.");
@@ -141,11 +173,10 @@ public class ProductList {
 
     public double getPrice(String name) {
         for (Product product : products) {
-            if (product.getName().equals(name)) {
+            if (product.getName().equalsIgnoreCase(name)) {
                 return product.getPrice();
             }
         }
         return -1;
-    
     }
 }

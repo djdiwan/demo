@@ -1,0 +1,289 @@
+<div class="container-fluid py-4 min-vh-100 bg-light-refreshing text-dark" data-bs-theme="light">
+  <!-- Toast Notification -->
+  @if (statusMessage()) {
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+      <div class="toast show align-items-center text-white border-0" 
+           [ngClass]="statusType() === 'success' ? 'bg-success' : 'bg-danger'" 
+           role="alert" 
+           aria-live="assertive" 
+           aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="bi me-2" [ngClass]="statusType() === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'"></i>
+            {{ statusMessage() }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Header -->
+  <header class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center pb-4 mb-4 border-bottom border-light-subtle">
+    <div>
+      <h1 class="display-5 fw-bold text-dark mb-0">Aero<span class="text-primary-gradient">Inventory</span></h1>
+      <p class="text-secondary mb-0">Next-Generation Polymorphic Product Management</p>
+    </div>
+    <div class="d-flex gap-3 mt-3 mt-md-0 w-100 w-md-auto">
+      <div class="card bg-white border-light-subtle shadow-sm px-3 py-2 text-center flex-fill flex-md-grow-0" style="min-width: 140px">
+        <span class="text-uppercase text-secondary fw-semibold" style="font-size: 0.75rem;">Total Items</span>
+        <span class="fs-3 fw-bold text-dark">{{ products().length }}</span>
+      </div>
+      <div class="card bg-primary-subtle border-primary-subtle px-3 py-2 text-center flex-fill flex-md-grow-0" style="min-width: 160px">
+        <span class="text-uppercase text-primary fw-semibold" style="font-size: 0.75rem;">Total Valuation</span>
+        <span class="fs-3 fw-bold text-primary">${{ getTotalInventoryValue() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="row g-4">
+    <!-- Sidebar -->
+    <aside class="col-lg-3 d-flex flex-column gap-4">
+      
+      <!-- Storage Selector -->
+      <div class="card bg-white border-light-subtle shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title fw-bold border-start border-primary border-3 ps-2 mb-3">Storage Engine</h5>
+          <div class="d-flex flex-column gap-2">
+            <button 
+              type="button" 
+              class="btn text-start d-flex justify-content-between align-items-center"
+              [ngClass]="activeRepository() === 'CSV' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="changeRepository('CSV')">
+              <span><i class="bi bi-filetype-csv me-2"></i>CSV File</span>
+              @if (activeRepository() === 'CSV') { <i class="bi bi-check-lg"></i> }
+            </button>
+            <button 
+              type="button" 
+              class="btn text-start d-flex justify-content-between align-items-center"
+              [ngClass]="activeRepository() === 'JSON' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="changeRepository('JSON')">
+              <span><i class="bi bi-filetype-json me-2"></i>JSON File</span>
+              @if (activeRepository() === 'JSON') { <i class="bi bi-check-lg"></i> }
+            </button>
+            <button 
+              type="button" 
+              class="btn text-start d-flex justify-content-between align-items-center"
+              [ngClass]="activeRepository() === 'H2' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="changeRepository('H2')">
+              <span><i class="bi bi-database me-2"></i>H2 Database</span>
+              @if (activeRepository() === 'H2') { <i class="bi bi-check-lg"></i> }
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Filter -->
+      <div class="card bg-white border-light-subtle shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title fw-bold border-start border-primary border-3 ps-2 mb-3">Filter by Price</h5>
+          <div class="mb-3">
+            <label class="form-label text-secondary fw-semibold small">Min Price ($)</label>
+            <input type="number" class="form-control bg-light-input border-light-subtle" [(ngModel)]="searchMin" placeholder="0">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-secondary fw-semibold small">Max Price ($)</label>
+            <input type="number" class="form-control bg-light-input border-light-subtle" [(ngModel)]="searchMax" placeholder="10000">
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1" (click)="search()">Filter</button>
+            @if (isSearching()) {
+              <button class="btn btn-outline-secondary" (click)="clearSearch()">Reset</button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Product -->
+      <div class="card bg-white border-light-subtle shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title fw-bold border-start border-primary border-3 ps-2 mb-3">Add Product</h5>
+          
+          <!-- Type Tab Button Group -->
+          <div class="btn-group w-100 mb-3" role="group">
+            <button 
+              type="button" 
+              class="btn btn-sm" 
+              [ngClass]="newProductType() === 'Physical' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="newProductType.set('Physical')">
+              Physical
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-sm" 
+              [ngClass]="newProductType() === 'Digital' ? 'btn-primary' : 'btn-outline-secondary'"
+              (click)="newProductType.set('Digital')">
+              Digital
+            </button>
+          </div>
+
+          <form (ngSubmit)="addProduct()">
+            <div class="mb-3">
+              <label class="form-label text-secondary fw-semibold small">Name</label>
+              <input type="text" class="form-control bg-light-input border-light-subtle" [(ngModel)]="newProductName" name="name" required placeholder="Product Name">
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-secondary fw-semibold small">Price ($)</label>
+              <input type="number" class="form-control bg-light-input border-light-subtle" [(ngModel)]="newProductPrice" name="price" required placeholder="0.00">
+            </div>
+
+            @if (newProductType() === 'Physical') {
+              <div class="mb-3">
+                <label class="form-label text-secondary fw-semibold small">Weight (kg)</label>
+                <input type="number" class="form-control bg-light-input border-light-subtle" [(ngModel)]="newProductWeight" name="weight" placeholder="0.0">
+              </div>
+            }
+
+            @if (newProductType() === 'Digital') {
+              <div class="mb-3">
+                <label class="form-label text-secondary fw-semibold small">Download URL</label>
+                <input type="url" class="form-control bg-light-input border-light-subtle" [(ngModel)]="newProductDownloadUrl" name="url" placeholder="https://">
+              </div>
+            }
+
+            <button type="submit" class="btn btn-success w-100 mt-2 text-white">Create Product</button>
+          </form>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Grid / Table -->
+    <main class="col-lg-9 d-flex flex-column gap-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="h3 fw-bold text-dark mb-0">Active Inventory</h2>
+        <div class="d-flex align-items-center gap-3">
+          <div class="btn-group" role="group">
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-sm px-3" 
+              [class.active]="viewMode() === 'grid'"
+              (click)="viewMode.set('grid')">
+              <i class="bi bi-grid-3x3-gap-fill me-1"></i>Grid
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary btn-sm px-3" 
+              [class.active]="viewMode() === 'list'"
+              (click)="viewMode.set('list')">
+              <i class="bi bi-list-task me-1"></i>List
+            </button>
+          </div>
+          <button class="btn btn-outline-secondary btn-sm" (click)="loadProducts()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      @if (products().length === 0) {
+        <div class="card bg-white border-light-subtle border-dashed py-5 text-center shadow-sm">
+          <div class="card-body">
+            <div class="fs-1 text-secondary mb-3"><i class="bi bi-folder-x"></i></div>
+            <h4 class="text-dark">No products found</h4>
+            <p class="text-secondary mx-auto" style="max-width: 320px;">Your active repository is empty. Add a product or reset your search parameters to view inventory.</p>
+          </div>
+        </div>
+      } @else {
+        <!-- Grid View -->
+        @if (viewMode() === 'grid') {
+          <div class="row row-cols-1 row-cols-md-2 row-cols-xxl-3 g-3">
+            @for (product of products(); track product.name) {
+              <div class="col">
+                <div class="card h-100 bg-white border-light-subtle position-relative card-hover-effect shadow-sm">
+                  <div class="card-body d-flex flex-column justify-content-between p-4" style="min-height: 220px;">
+                    <div>
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge" 
+                              [ngClass]="product.type === 'Physical' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-info-subtle text-info border border-info-subtle'">
+                          {{ product.type }}
+                        </span>
+                        <button class="btn btn-link text-secondary p-0 border-0 btn-delete-hover" (click)="deleteProduct(product.name)" title="Delete Product">
+                          <i class="bi bi-trash-fill fs-5"></i>
+                        </button>
+                      </div>
+                      <h4 class="card-title fw-bold text-dark mb-2">{{ product.name }}</h4>
+                    </div>
+
+                    <div>
+                      <div class="mb-3">
+                        @if (editingProductName() === product.name) {
+                          <div class="d-flex gap-2 align-items-center">
+                            <input type="number" [(ngModel)]="editingProductPrice" class="form-control form-control-sm bg-light-input border-light-subtle" style="width: 100px;">
+                            <button class="btn btn-success btn-sm px-2 py-1 text-white" (click)="savePrice(product.name)" title="Save"><i class="bi bi-check-lg"></i></button>
+                            <button class="btn btn-secondary btn-sm px-2 py-1" (click)="cancelEdit()" title="Cancel"><i class="bi bi-x-lg"></i></button>
+                          </div>
+                        } @else {
+                          <div class="d-flex align-items-center gap-2">
+                            <span class="fs-4 fw-bold text-dark">${{ product.price | number:'1.2-2' }}</span>
+                            <button class="btn btn-link text-info p-0 border-0 small text-decoration-none fw-semibold" (click)="startEdit(product)">
+                              <i class="bi bi-pencil-square me-1"></i>Edit Price
+                            </button>
+                          </div>
+                        }
+                      </div>
+
+                      <div class="bg-light rounded border border-light-subtle p-2">
+                        <span class="text-uppercase text-secondary fw-bold d-block" style="font-size: 0.65rem;">Specifications</span>
+                        <span class="small text-dark text-truncate d-block" [title]="product.details">{{ product.details }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <!-- List View (Table) -->
+          <div class="card bg-white border-light-subtle overflow-hidden shadow-sm">
+            <div class="table-responsive">
+              <table class="table table-hover table-striped align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th class="border-light-subtle text-primary text-uppercase small py-3 px-4" style="letter-spacing: 0.05em;">Type</th>
+                    <th class="border-light-subtle text-primary text-uppercase small py-3" style="letter-spacing: 0.05em;">Name</th>
+                    <th class="border-light-subtle text-primary text-uppercase small py-3" style="letter-spacing: 0.05em;">Price</th>
+                    <th class="border-light-subtle text-primary text-uppercase small py-3" style="letter-spacing: 0.05em;">Specifications</th>
+                    <th class="border-light-subtle text-primary text-uppercase small py-3 text-end px-4" style="letter-spacing: 0.05em; width: 140px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (product of products(); track product.name) {
+                    <tr>
+                      <td class="px-4">
+                        <span class="badge" 
+                              [ngClass]="product.type === 'Physical' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-info-subtle text-info border border-info-subtle'">
+                          {{ product.type }}
+                        </span>
+                      </td>
+                      <td class="fw-bold text-dark">{{ product.name }}</td>
+                      <td>
+                        @if (editingProductName() === product.name) {
+                          <div class="d-flex gap-2 align-items-center">
+                            <input type="number" [(ngModel)]="editingProductPrice" class="form-control form-control-sm bg-light-input border-light-subtle" style="width: 100px;">
+                            <button class="btn btn-success btn-sm px-2 py-1 text-white" (click)="savePrice(product.name)"><i class="bi bi-check-lg"></i></button>
+                            <button class="btn btn-secondary btn-sm px-2 py-1 text-white" (click)="cancelEdit()"><i class="bi bi-x-lg"></i></button>
+                          </div>
+                        } @else {
+                          <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-dark">${{ product.price | number:'1.2-2' }}</span>
+                            <button class="btn btn-link text-info p-0 border-0 small text-decoration-none fw-semibold" (click)="startEdit(product)">
+                              <i class="bi bi-pencil-square"></i>
+                            </button>
+                          </div>
+                        }
+                      </td>
+                      <td class="text-dark small text-truncate" style="max-width: 300px;">{{ product.details }}</td>
+                      <td class="text-end px-4">
+                        <button class="btn btn-outline-danger btn-sm" (click)="deleteProduct(product.name)" title="Delete Product">
+                          <i class="bi bi-trash-fill"></i> Delete
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      }
+    </main>
+  </div>
+</div>

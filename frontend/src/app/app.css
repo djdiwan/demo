@@ -1,0 +1,126 @@
+/* Custom enhancements to complement Bootstrap 5 - Light Refreshing Theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* Apply custom font family to headers, buttons, and form labels */
+h1, h2, h3, h4, h5, h6, .btn, .card-title, .form-label, .table th {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 50%, #f0f9ff 100%) no-repeat fixed !important;
+  color: #0f172a !important;
+  min-height: 100vh;
+}
+
+/* Refreshing container background */
+.bg-light-refreshing {
+  background: transparent !important;
+}
+
+/* Light Mode Input Enhancements */
+.bg-light-input {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+.bg-light-input:focus {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 0 0 0.25rem rgba(14, 165, 233, 0.15) !important;
+}
+
+/* Card Styling customizations for ultra-clean look */
+.card {
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -2px rgba(0, 0, 0, 0.03) !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+/* Card Hover Effect */
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(14, 165, 233, 0.3) !important; /* Ocean blue border highlight on hover */
+}
+
+/* Title gradient effect */
+.text-primary-gradient {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0d9488 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  font-weight: 800;
+}
+
+/* Delete Button hover effect */
+.btn-delete-hover {
+  transition: color 0.15s ease;
+}
+
+.btn-delete-hover:hover {
+  color: #ef4444 !important; /* Red hover */
+}
+
+/* Dashed Border helper */
+.border-dashed {
+  border-style: dashed !important;
+}
+
+/* Custom badges */
+.badge {
+  font-weight: 600;
+  padding: 0.35em 0.65em;
+  border-radius: 6px;
+}
+
+/* Specifications details section inside card */
+.bg-light {
+  background-color: #f8fafc !important; /* soft cool slate background */
+}
+
+/* Active buttons styling override for soft look */
+.btn-primary {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0d9488 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%) !important;
+  box-shadow: 0 6px 15px rgba(14, 165, 233, 0.3) !important;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Custom fade-in animations for components */
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

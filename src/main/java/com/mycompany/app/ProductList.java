@@ -3,12 +3,16 @@ package com.mycompany.app;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * The ProductList class manages a collection of products.
  * It provides methods to add products and list their details.
  */
+@Service
 public class ProductList {
     private ArrayList<Product> products;
     private boolean hasChanges = false;
@@ -24,6 +28,7 @@ public class ProductList {
     /**
      * Constructs a new ProductList with a custom repository.
      */
+    @Autowired
     public ProductList(ProductRepository repository) {
         this.products = new ArrayList<>();
         this.repository = repository;
